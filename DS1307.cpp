@@ -26,35 +26,29 @@ uint8_t begin(void) {
 }
 
 
-uint8_t isrunning(void) {
-  
-  I2c.write(DS1307_ADDRESS, REG_ZERO);
-  
-  I2c.read(DS1307_ADDRESS, 1);
+uint8_t isRunning() {
+  I2c.read(DS1307_ADDRESS, REG_ZERO, 1);
   Serial.println(I2c.available());
   uint8_t ss = I2c.receive();
   Serial.println(ss);
   return !(ss>>7);
 }
 
-void adjust(const DateTime& dt) {
-
-    I2c.write(DS1307_ADDRESS, REG_ZERO);
-    I2c.write(DS1307_ADDRESS, (int) bin2bcd(dt.second()));    // why does 2nd parameter have to be an int. Isn't uint8_t okay.
-    I2c.write(DS1307_ADDRESS, (int) bin2bcd(dt.minute()));
-    I2c.write(DS1307_ADDRESS, (int) bin2bcd(dt.hour()));
-    I2c.write(DS1307_ADDRESS, (int) bin2bcd(0));
-    I2c.write(DS1307_ADDRESS, (int) bin2bcd(dt.day()));
-    I2c.write(DS1307_ADDRESS, (int) bin2bcd(dt.month()));
-    I2c.write(DS1307_ADDRESS, (int) bin2bcd(dt.year() - 2000));
-    I2c.write(DS1307_ADDRESS, REG_ZERO);
+void setDatetime(const DateTime& dt) {
+    I2c.writeBytes(DS1307_ADDRESS, REG_ZERO, 7,
+    		bin2bcd(dt.second()),
+    		bin2bcd(dt.minute()),
+    		bin2bcd(dt.hour()),
+    		bin2bcd(0),
+    		bin2bcd(dt.day()),
+    		bin2bcd(dt.month()),
+    		bin2bcd(dt.year() - 2000));
 }
 
-DateTime now() {
-
-    I2c.write(DS1307_ADDRESS, REG_ZERO);
+DateTime getDatetime(){
   
-    I2c.read(DS1307_ADDRESS, 7);
+    uint8_t result = I2c.read(DS1307_ADDRESS, REG_ZERO, 7);
+    Serial.println(result);
     uint8_t ss = bcd2bin(I2c.receive() & 0x7F);
     uint8_t mm = bcd2bin(I2c.receive());
     uint8_t hh = bcd2bin(I2c.receive());
@@ -66,4 +60,78 @@ DateTime now() {
     return DateTime (y, m, d, hh, mm, ss);
 }
 
+void setOutput(bool state) {
+	I2c.read(DS1307_ADDRESS, 7, 1);
+	uint8_t control = I2c.receive();
+	control = state ? control | 0x80 : control & 0x7F;
+    I2c.write(uint8_t(DS1307_ADDRESS), uint8_t(7), control);
 }
+
+bool getOutput() {
+	I2c.read(DS1307_ADDRESS, 7, 1);
+	uint8_t control = I2c.receive();
+    return control & 0x80;
+}
+
+void setSquareWave(bool state) {
+	I2c.read(DS1307_ADDRESS, 7, 1);
+	uint8_t control = I2c.receive();
+	control = state ? control | 0x10 : control & 0x0F;
+    I2c.write(uint8_t(DS1307_ADDRESS), uint8_t(7), control);
+}
+
+bool getSquareWave() {
+	I2c.read(DS1307_ADDRESS, 7, 1);
+	uint8_t control = I2c.receive();
+    return control & 0x10;
+}
+
+void setRateSelect(Rate rate) {
+	I2c.read(DS1307_ADDRESS, 7, 1);
+	uint8_t control = I2c.receive();
+	control = (control & 0b11111100) | control;
+	I2c.write(uint8_t(DS1307_ADDRESS), uint8_t(7), control);
+}
+
+Rate getRateSelect(Rate rate) {
+	I2c.read(DS1307_ADDRESS, 7, 1);
+	uint8_t control = I2c.receive();
+	return Rate(control & 0b11);
+}
+
+uint8_t readByte(uint8_t offset, uint8_t & data) {
+	offset %= 56;
+	offset += 8;
+	uint8_t status = I2c.read((uint8_t)DS1307_ADDRESS, offset, (uint8_t)1);
+	if (status != 0) {
+		return status;
+	}
+	if (I2c.available() == 0) {
+		return 10;
+	}
+	data = I2c.receive();
+	return 0;
+}
+
+uint8_t writeByte(uint8_t offset, uint8_t data) {
+	offset %= 56;
+	offset += 8;
+	return I2c.write(uint8_t(DS1307_ADDRESS), offset, data);
+}
+
+uint8_t readBytes(uint8_t offset, uint8_t* data, uint8_t numBytes)
+{
+	offset %= 56;
+	offset += 8;
+	return I2c.read(DS1307_ADDRESS, offset, numBytes, data);
+}
+
+uint8_t writeBytes(uint8_t offset, uint8_t* data, uint8_t numBytes)
+{
+	offset %= 56;
+	offset += 8;
+	return I2c.write(DS1307_ADDRESS, offset, data, numBytes);
+}
+
+}
+

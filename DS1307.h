@@ -14,10 +14,32 @@ Simple general-purpose date/time class (no TZ / DST / leap second handling!)
 #include "DateTime.h"
 
 namespace DS1307 {
+    enum Rate { RATE_1_HZ     = 0b00,
+    	        RATE_4096_HZ  = 0b01,
+    	        RATE_8192_HZ  = 0b10,
+    	        RATE_32768_HZ = 0b11 };
+
     uint8_t begin(void);
-    void adjust(const DateTime& dt);
-    uint8_t isrunning(void);
-    DateTime now();
+    uint8_t isRunning();
+    void setDatetime(const DateTime& dt);
+    DateTime getDatetime();
+
+    //ClockMode mode();
+
+    void setOutput(bool state);
+    bool getOutput();
+
+    void setSquareWave(bool enable);
+    bool getSquareWave();
+
+    void setRateSelect(Rate rate);
+    Rate getRateSelect();
+
+    uint8_t writeBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);
+    uint8_t readBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);
+
+    uint8_t readByte(uint8_t offset, uint8_t & data);
+    uint8_t writeByte(uint8_t offset, uint8_t data);
 }
 
 
