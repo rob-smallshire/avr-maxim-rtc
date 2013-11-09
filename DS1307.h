@@ -32,8 +32,8 @@ namespace DS1307 {
     void setSquareWave(bool enable);
     bool getSquareWave();
 
-    void setRateSelect(Rate rate);
-    Rate getRateSelect();
+    void setRate(Rate rate);
+    Rate getRate();
 
     uint8_t writeBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);
     uint8_t readBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);

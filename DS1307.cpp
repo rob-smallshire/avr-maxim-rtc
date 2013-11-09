@@ -48,7 +48,6 @@ void setDatetime(const DateTime& dt) {
 DateTime getDatetime(){
   
     uint8_t result = I2c.read(DS1307_ADDRESS, REG_ZERO, 7);
-    Serial.println(result);
     uint8_t ss = bcd2bin(I2c.receive() & 0x7F);
     uint8_t mm = bcd2bin(I2c.receive());
     uint8_t hh = bcd2bin(I2c.receive());
@@ -86,14 +85,14 @@ bool getSquareWave() {
     return control & 0x10;
 }
 
-void setRateSelect(Rate rate) {
+void setRate(Rate rate) {
 	I2c.read(DS1307_ADDRESS, 7, 1);
 	uint8_t control = I2c.receive();
-	control = (control & 0b11111100) | control;
+	control = (control & 0b11111100) | rate;
 	I2c.write(uint8_t(DS1307_ADDRESS), uint8_t(7), control);
 }
 
-Rate getRateSelect(Rate rate) {
+Rate getRate() {
 	I2c.read(DS1307_ADDRESS, 7, 1);
 	uint8_t control = I2c.receive();
 	return Rate(control & 0b11);
