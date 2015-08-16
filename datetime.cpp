@@ -5,13 +5,14 @@
  *      Author: rjs
  */
 
-#include <Arduino.h>
+#include "datetime.h"
 
-#include "DateTime.h"
+#include <avr/pgmspace.h>
 
 #define SECONDS_PER_DAY 86400L
 
 #define SECONDS_FROM_1970_TO_2000 946684800
+#define DAYS_PER_YEAR 365U
 #define REG_ZERO 0  // DS1307 register address 0
 
 const uint8_t daysInMonth [] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 }; //has to be const or compiler compaints
@@ -25,7 +26,7 @@ static uint16_t date2days(uint16_t y, uint8_t m, uint8_t d) {
         days += pgm_read_byte(daysInMonth + i - 1);
     if (m > 2 && y % 4 == 0)
         ++days;
-    return days + 365 * y + (y + 3) / 4 - 1;
+    return days + DAYS_PER_YEAR * y + (y + 3) / 4 - 1;
 }
 
 static long time2long(uint16_t days, uint8_t h, uint8_t m, uint8_t s) {
@@ -37,8 +38,7 @@ static long time2long(uint16_t days, uint8_t h, uint8_t m, uint8_t s) {
 // NOTE: also ignores leap seconds, see http://en.wikipedia.org/wiki/Leap_second
 
 DateTime::DateTime (uint32_t t) {
-  t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
-
+    t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
     ss = t % 60;
     t /= 60;
     mm = t % 60;
@@ -48,9 +48,9 @@ DateTime::DateTime (uint32_t t) {
     uint8_t leap;
     for (yOff = 0; ; ++yOff) {
         leap = yOff % 4 == 0;
-        if (days < 365 + leap)
+if (days < DAYS_PER_YEAR + leap)
             break;
-        days -= 365 + leap;
+        days -= DAYS_PER_YEAR + leap;
     }
     for (m = 1; ; ++m) {
         uint8_t daysPerMonth = pgm_read_byte(daysInMonth + m - 1);
@@ -89,7 +89,10 @@ DateTime::DateTime (const char* date, const char* time) {
     yOff = conv2d(date + 9);
     // Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
     switch (date[0]) {
-        case 'J': m = date[1] == 'a' ? 1 : m = date[2] == 'n' ? 6 : 7; break;
+        case 'J': m = (date[1] == 'a')
+                    ? 1
+	            : (date[2] == 'n') ? 6 : 7;
+                  break;
         case 'F': m = 2; break;
         case 'A': m = date[2] == 'r' ? 4 : 8; break;
         case 'M': m = date[2] == 'r' ? 3 : 5; break;
@@ -110,10 +113,14 @@ uint8_t DateTime::dayOfWeek() const {
 }
 
 uint32_t DateTime::unixtime(void) const {
-  uint32_t t;
   uint16_t days = date2days(yOff, m, d);
-  t = time2long(days, hh, mm, ss);
-  t += SECONDS_FROM_1970_TO_2000;  // seconds from 1970 to 2000
+  return time2long(days, hh, mm, ss) + SECONDS_FROM_1970_TO_2000;
+}
 
-  return t;
+DateTime DateTime::make_error() {
+    return DateTime(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+}
+
+bool DateTime::is_error() const {
+    return (m > 12) || (d > 31) || (hh > 23) || (mm > 59) || (ss > 59); 
 }

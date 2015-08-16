@@ -11,7 +11,7 @@ Released to the public domain! Enjoy!
 Simple general-purpose date/time class (no TZ / DST / leap second handling!)
 */
 
-#include "DateTime.h"
+#include "datetime.h"
 
 namespace DS1307 {
     enum Rate { RATE_1_HZ     = 0b00,
