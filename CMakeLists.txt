@@ -134,6 +134,7 @@ add_definitions("-c")
 ##########################################################################
 include_directories(${DS-RTC_SOURCE_DIR}/elapsed)
 include_directories(${DS-RTC_SOURCE_DIR}/i2c)
+include_directories(${DS-RTC_SOURCE_DIR}/rtc)
 
 ##########################################################################
 # building library and application in their subdirectories
@@ -141,6 +142,7 @@ include_directories(${DS-RTC_SOURCE_DIR}/i2c)
 add_subdirectory(elapsed)
 add_subdirectory(i2c)
 add_subdirectory(rtc)
+add_subdirectory(clock)
 
 # find_library(M_LIB m)
 # message(STATUS "avr-libm: ${M_LIB}")
