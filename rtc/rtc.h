@@ -13,18 +13,16 @@ Simple general-purpose date/time class (no TZ / DST / leap second handling!)
 
 #include "datetime.h"
 
-namespace DS1307 {
-    enum Rate { RATE_1_HZ     = 0b00,
-    	        RATE_4096_HZ  = 0b01,
-    	        RATE_8192_HZ  = 0b10,
-    	        RATE_32768_HZ = 0b11 };
+namespace DS_RTC {
+    enum Rate { RATE_1_HZ     = 0x00,
+    	        RATE_4096_HZ  = 0x01,
+    	        RATE_8192_HZ  = 0x02,
+    	        RATE_32768_HZ = 0x03 };
 
-    uint8_t begin(void);
+    void begin(void);
     uint8_t isRunning();
     void setDatetime(const DateTime& dt);
     DateTime getDatetime();
-
-    //ClockMode mode();
 
     void setOutput(bool state);
     bool getOutput();
@@ -35,11 +33,9 @@ namespace DS1307 {
     void setRate(Rate rate);
     Rate getRate();
 
-    uint8_t writeBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);
-    uint8_t readBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);
+//    uint8_t writeBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);
+//    uint8_t readBytes(uint8_t offset, uint8_t* data, uint8_t numBytes);
 
-    uint8_t readByte(uint8_t offset, uint8_t & data);
-    uint8_t writeByte(uint8_t offset, uint8_t data);
+//    uint8_t readByte(uint8_t offset, uint8_t & data);
+//    uint8_t writeByte(uint8_t offset, uint8_t data);
 }
-
-
